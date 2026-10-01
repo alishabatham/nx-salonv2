@@ -1,4 +1,15 @@
-const API_BASE = '/api';
+const getApiBase = () => {
+  if (import.meta.env.VITE_API_URL) {
+    const url = import.meta.env.VITE_API_URL.replace(/\/$/, '');
+    return url.endsWith('/api') ? url : `${url}/api`;
+  }
+  if (import.meta.env.DEV) {
+    return '/api';
+  }
+  return 'https://nx-salonv2.vercel.app/api';
+};
+
+const API_BASE = getApiBase();
 
 export const fetchAPI = async (endpoint, options = {}) => {
   const token = localStorage.getItem('nx_token');
