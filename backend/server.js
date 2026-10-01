@@ -7,15 +7,27 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
-// Connect Database
-connectDB();
-
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Ensure DB Connection Middleware for Serverless Environment
+app.use(async (req, res, next) => {
+  // Skip DB connection for root welcome and health check
+  if (req.path === '/' || req.path === '/api/health') {
+    return next();
+  }
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500);
+    next(error);
+  }
+});
 
 // Root Welcome Route (Fixes Vercel 404 on '/')
 app.get('/', (req, res) => {
@@ -49,7 +61,7 @@ app.use('/api/public', require('./routes/publicRoutes'));
 app.use(notFound);
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5005;
+const PORT = process.env.PORT || 5006;
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
