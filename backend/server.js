@@ -17,6 +17,16 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Root Welcome Route (Fixes Vercel 404 on '/')
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Beauty & Wellness Business OS Backend API',
+    health: '/api/health',
+    version: '1.0.0'
+  });
+});
+
 // Healthcheck Route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Beauty & Wellness Business OS API is running cleanly', time: new Date() });
@@ -41,6 +51,10 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5005;
 
-app.listen(PORT, () => {
-  console.log(`[API Server] Express running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`[API Server] Express running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+  });
+}
+
+module.exports = app;
